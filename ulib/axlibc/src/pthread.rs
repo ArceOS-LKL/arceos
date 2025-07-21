@@ -8,6 +8,16 @@ pub unsafe extern "C" fn pthread_self() -> ctypes::pthread_t {
     api::sys_pthread_self()
 }
 
+// static int __pthread_equal(pthread_t a, pthread_t b)
+// {
+// 	return a==b;
+// }
+
+/// Check if two threads are equal.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn pthread_equal(a: ctypes::pthread_t, b: ctypes::pthread_t) -> c_int {
+    api::sys_pthread_equal(a, b)
+}
 /// Create a new thread with the given entry point and argument.
 ///
 /// If successful, it stores the pointer to the newly created `struct __pthread`
@@ -19,7 +29,7 @@ pub unsafe extern "C" fn pthread_create(
     start_routine: extern "C" fn(arg: *mut c_void) -> *mut c_void,
     arg: *mut c_void,
 ) -> c_int {
-    e(api::sys_pthread_create(res, attr, start_routine, arg))
+    e(unsafe { api::sys_pthread_create(res, attr, start_routine, arg) })
 }
 
 /// Exits the current thread. The value `retval` will be returned to the joiner.
@@ -34,7 +44,7 @@ pub unsafe extern "C" fn pthread_join(
     thread: ctypes::pthread_t,
     retval: *mut *mut c_void,
 ) -> c_int {
-    e(api::sys_pthread_join(thread, retval))
+    e(unsafe { api::sys_pthread_join(thread, retval) })
 }
 
 /// Initialize a mutex.
@@ -56,4 +66,25 @@ pub unsafe extern "C" fn pthread_mutex_lock(mutex: *mut ctypes::pthread_mutex_t)
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn pthread_mutex_unlock(mutex: *mut ctypes::pthread_mutex_t) -> c_int {
     e(api::sys_pthread_mutex_unlock(mutex))
+}
+
+/// Destroy the given mutex.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn pthread_mutex_destroy(_mutex: *mut ctypes::pthread_mutex_t) -> c_int {
+    e(api::sys_pthread_mutex_destroy(_mutex))
+}
+
+/// Detach the current thread.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn pthread_detach(thread: ctypes::pthread_t) -> c_int {
+    api::sys_pthread_detach(thread)
+}
+
+/// Set the type of the given mutex attribute.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn pthread_mutexattr_settype(
+    attr: *mut ctypes::pthread_mutexattr_t,
+    type_: c_int,
+) -> c_int {
+    e(api::sys_pthread_mutexattr_settype(attr, type_))
 }

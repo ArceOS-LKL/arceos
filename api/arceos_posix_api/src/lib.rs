@@ -54,7 +54,11 @@ pub use imp::net::{
 pub use imp::pipe::sys_pipe;
 #[cfg(feature = "multitask")]
 pub use imp::pthread::mutex::{
-    sys_pthread_mutex_init, sys_pthread_mutex_lock, sys_pthread_mutex_unlock,
+    sys_pthread_mutex_destroy, sys_pthread_mutex_init, sys_pthread_mutex_lock,
+    sys_pthread_mutex_unlock, sys_pthread_mutexattr_settype,
 };
 #[cfg(feature = "multitask")]
-pub use imp::pthread::{sys_pthread_create, sys_pthread_exit, sys_pthread_join, sys_pthread_self};
+pub use imp::pthread::{
+    sys_pthread_create, sys_pthread_detach, sys_pthread_equal, sys_pthread_exit, sys_pthread_join,
+    sys_pthread_self,
+};

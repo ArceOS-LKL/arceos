@@ -108,6 +108,16 @@ pub fn sys_pthread_self() -> ctypes::pthread_t {
     Pthread::current().expect("fail to get current thread") as *const Pthread as _
 }
 
+/// Check if two threads are equal.
+pub unsafe fn sys_pthread_equal(a: ctypes::pthread_t, b: ctypes::pthread_t) -> c_int {
+    let thread_a = unsafe { Box::from_raw(a as *mut Pthread) };
+    let thread_b = unsafe { Box::from_raw(b as *mut Pthread) };
+    let ret = thread_a.inner.id() == thread_b.inner.id();
+    drop(thread_a);
+    drop(thread_b);
+    ret as _
+}
+
 /// Create a new thread with the given entry point and argument.
 ///
 /// If successful, it stores the pointer to the newly created `struct __pthread`
@@ -145,6 +155,13 @@ pub unsafe fn sys_pthread_join(thread: ctypes::pthread_t, retval: *mut *mut c_vo
         }
         Ok(0)
     })
+}
+
+/// Detach the current thread.
+pub unsafe fn sys_pthread_detach(thread: ctypes::pthread_t) -> c_int {
+    debug!("sys_pthread_detach <= {:#x}", thread as usize);
+    warn!("sys_pthread_detach is not implemented");
+    0
 }
 
 #[derive(Clone, Copy)]

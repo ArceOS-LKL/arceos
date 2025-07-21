@@ -23,6 +23,11 @@ int setenv(const char *__name, const char *__value, int __replace)
     return 0;
 }
 
+void __stack_chk_fail(void)
+{
+    *(volatile int *)0 = 0;
+}
+
 // TODO
 int unsetenv(const char *__name)
 {

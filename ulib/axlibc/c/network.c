@@ -31,8 +31,7 @@ const char *gai_strerror(int ecode)
 {
     const char *s;
     for (s = gai_msgs, ecode++; ecode && *s; ecode++, s++)
-        for (; *s; s++)
-            ;
+        for (; *s; s++);
     if (!*s)
         s++;
     return s;
@@ -48,8 +47,7 @@ const char *hstrerror(int ecode)
 {
     const char *s;
     for (s = msgs, ecode--; ecode && *s; ecode--, s++)
-        for (; *s; s++)
-            ;
+        for (; *s; s++);
     if (!*s)
         s++;
     return s;
@@ -109,6 +107,59 @@ static int hexval(unsigned c)
     if (c - 'a' < 6)
         return c - 'a' + 10;
     return -1;
+}
+
+int __inet_aton(const char *s0, struct in_addr *dest)
+{
+    const char *s = s0;
+    unsigned char *d = (void *)dest;
+    unsigned long a[4] = {0};
+    char *z;
+    int i;
+
+    for (i = 0; i < 4; i++) {
+        a[i] = strtoul(s, &z, 0);
+        if (z == s || (*z && *z != '.') || !isdigit(*s))
+            return 0;
+        if (!*z)
+            break;
+        s = z + 1;
+    }
+    if (i == 4)
+        return 0;
+    switch (i) {
+    case 0:
+        a[1] = a[0] & 0xffffff;
+        a[0] >>= 24;
+    case 1:
+        a[2] = a[1] & 0xffff;
+        a[1] >>= 16;
+    case 2:
+        a[3] = a[2] & 0xff;
+        a[2] >>= 8;
+    }
+    for (i = 0; i < 4; i++) {
+        if (a[i] > 255)
+            return 0;
+        d[i] = a[i];
+    }
+    return 1;
+}
+
+in_addr_t inet_addr(const char *p)
+{
+    struct in_addr a;
+    if (!__inet_aton(p, &a))
+        return -1;
+    return a.s_addr;
+}
+
+char *inet_ntoa(struct in_addr in)
+{
+    static char buf[16];
+    unsigned char *a = (void *)&in;
+    snprintf(buf, sizeof buf, "%d.%d.%d.%d", a[0], a[1], a[2], a[3]);
+    return buf;
 }
 
 int inet_pton(int af, const char *__restrict s, void *__restrict a0)

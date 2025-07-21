@@ -126,4 +126,10 @@ struct sockaddr_in6 {
     uint32_t sin6_scope_id;
 };
 
+#define INADDR_ANY       ((in_addr_t)0x00000000)
+#define INADDR_BROADCAST ((in_addr_t)0xffffffff)
+#define INADDR_NONE      ((in_addr_t)0xffffffff)
+#define INADDR_LOOPBACK  ((in_addr_t)0x7f000001)
+#define INADDR_DUMMY     ((in_addr_t)0xc0000008)
+
 #endif // _NETINET_IN_H

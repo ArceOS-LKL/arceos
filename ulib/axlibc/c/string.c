@@ -8,8 +8,7 @@
 size_t strlen(const char *s)
 {
     const char *a = s;
-    for (; *s; s++)
-        ;
+    for (; *s; s++);
     return s - a;
 }
 
@@ -38,8 +37,7 @@ void *memchr(const void *src, int c, size_t n)
 {
     const unsigned char *s = src;
     c = (unsigned char)c;
-    for (; n && *s != c; s++, n--)
-        ;
+    for (; n && *s != c; s++, n--);
     return n ? (void *)s : 0;
 }
 
@@ -87,15 +85,13 @@ void *memset(void *dest, int c, size_t n)
 
 char *strcpy(char *restrict d, const char *restrict s)
 {
-    for (; (*d = *s); s++, d++)
-        ;
+    for (; (*d = *s); s++, d++);
     return d;
 }
 
 char *strncpy(char *restrict d, const char *restrict s, size_t n)
 {
-    for (; n && (*d = *s); n--, s++, d++)
-        ;
+    for (; n && (*d = *s); n--, s++, d++);
     return d;
 }
 
@@ -116,8 +112,7 @@ char *strncat(char *restrict d, const char *restrict s, size_t n)
 
 int strcmp(const char *l, const char *r)
 {
-    for (; *l == *r && *l; l++, r++)
-        ;
+    for (; *l == *r && *l; l++, r++);
     return *(unsigned char *)l - *(unsigned char *)r;
 }
 
@@ -126,8 +121,7 @@ int strncmp(const char *_l, const char *_r, size_t n)
     const unsigned char *l = (void *)_l, *r = (void *)_r;
     if (!n--)
         return 0;
-    for (; *l && *r && n && *l == *r; l++, r++, n--)
-        ;
+    for (; *l && *r && n && *l == *r; l++, r++, n--);
     return *l - *r;
 }
 
@@ -152,8 +146,7 @@ size_t strcspn(const char *s1, const char *s2)
     memset(byteset, 0, sizeof byteset);
 
     for (; *s2 != '\0'; s2++) BITOP(byteset, *(unsigned char *)s2, |=);
-    for (; *s1 && !(BITOP(byteset, *(unsigned char *)s1, &)); s1++)
-        ;
+    for (; *s1 && !(BITOP(byteset, *(unsigned char *)s1, &)); s1++);
 
     return s1 - a;
 }
@@ -166,16 +159,44 @@ size_t strspn(const char *s, const char *c)
     if (!c[0])
         return 0;
     if (!c[1]) {
-        for (; *s == *c; s++)
-            ;
+        for (; *s == *c; s++);
         return s - a;
     }
 
-    for (; *c && BITOP(byteset, *(unsigned char *)c, |=); c++)
-        ;
-    for (; *s && BITOP(byteset, *(unsigned char *)s, &); s++)
-        ;
+    for (; *c && BITOP(byteset, *(unsigned char *)c, |=); c++);
+    for (; *s && BITOP(byteset, *(unsigned char *)s, &); s++);
     return s - a;
+}
+
+char *strtok(char *restrict s, const char *restrict sep)
+{
+    static char *p;
+    if (!s && !(s = p))
+        return NULL;
+    s += strspn(s, sep);
+    if (!*s)
+        return p = 0;
+    p = s + strcspn(s, sep);
+    if (*p)
+        *p++ = 0;
+    else
+        p = 0;
+    return s;
+}
+
+char *strtok_r(char *restrict s, const char *restrict sep, char **restrict p)
+{
+    if (!s && !(s = *p))
+        return NULL;
+    s += strspn(s, sep);
+    if (!*s)
+        return *p = 0;
+    *p = s + strcspn(s, sep);
+    if (**p)
+        *(*p)++ = 0;
+    else
+        *p = 0;
+    return s;
 }
 
 char *strpbrk(const char *s, const char *b)
@@ -190,8 +211,7 @@ char *strchrnul(const char *s, int c)
     if (!c)
         return (char *)s + strlen(s);
 
-    for (; *s && *(unsigned char *)s != c; s++)
-        ;
+    for (; *s && *(unsigned char *)s != c; s++);
     return (char *)s;
 }
 
@@ -264,16 +284,14 @@ void *memmove(void *dest, const void *src, size_t n)
 int memcmp(const void *vl, const void *vr, size_t n)
 {
     const unsigned char *l = vl, *r = vr;
-    for (; n && *l == *r; n--, l++, r++)
-        ;
+    for (; n && *l == *r; n--, l++, r++);
     return n ? *l - *r : 0;
 }
 
 int strcasecmp(const char *_l, const char *_r)
 {
     const unsigned char *l = (void *)_l, *r = (void *)_r;
-    for (; *l && *r && (*l == *r || tolower(*l) == tolower(*r)); l++, r++)
-        ;
+    for (; *l && *r && (*l == *r || tolower(*l) == tolower(*r)); l++, r++);
     return tolower(*l) - tolower(*r);
 }
 
@@ -282,8 +300,7 @@ int strncasecmp(const char *_l, const char *_r, size_t n)
     const unsigned char *l = (void *)_l, *r = (void *)_r;
     if (!n--)
         return 0;
-    for (; *l && *r && n && (*l == *r || tolower(*l) == tolower(*r)); l++, r++, n--)
-        ;
+    for (; *l && *r && n && (*l == *r || tolower(*l) == tolower(*r)); l++, r++, n--);
     return tolower(*l) - tolower(*r);
 }
 
@@ -291,8 +308,7 @@ int strncasecmp(const char *_l, const char *_r, size_t n)
 static char *twobyte_strstr(const unsigned char *h, const unsigned char *n)
 {
     uint16_t nw = n[0] << 8 | n[1], hw = h[0] << 8 | h[1];
-    for (h++; *h && hw != nw; hw = hw << 8 | *++h)
-        ;
+    for (h++; *h && hw != nw; hw = hw << 8 | *++h);
     return *h ? (char *)h - 1 : 0;
 }
 
@@ -301,8 +317,7 @@ static char *threebyte_strstr(const unsigned char *h, const unsigned char *n)
 {
     uint32_t nw = (uint32_t)n[0] << 24 | n[1] << 16 | n[2] << 8;
     uint32_t hw = (uint32_t)h[0] << 24 | h[1] << 16 | h[2] << 8;
-    for (h += 2; *h && hw != nw; hw = (hw | *++h) << 8)
-        ;
+    for (h += 2; *h && hw != nw; hw = (hw | *++h) << 8);
     return *h ? (char *)h - 2 : 0;
 }
 
@@ -311,8 +326,7 @@ static char *fourbyte_strstr(const unsigned char *h, const unsigned char *n)
 {
     uint32_t nw = (uint32_t)n[0] << 24 | n[1] << 16 | n[2] << 8 | n[3];
     uint32_t hw = (uint32_t)h[0] << 24 | h[1] << 16 | h[2] << 8 | h[3];
-    for (h += 3; *h && hw != nw; hw = hw << 8 | *++h)
-        ;
+    for (h += 3; *h && hw != nw; hw = hw << 8 | *++h);
     return *h ? (char *)h - 3 : 0;
 }
 
@@ -420,16 +434,14 @@ static char *twoway_strstr(const unsigned char *h, const unsigned char *n)
         }
 
         /* Compare right half */
-        for (k = MAX(ms + 1, mem); n[k] && n[k] == h[k]; k++)
-            ;
+        for (k = MAX(ms + 1, mem); n[k] && n[k] == h[k]; k++);
         if (n[k]) {
             h += k - ms;
             mem = 0;
             continue;
         }
         /* Compare left half */
-        for (k = ms + 1; k > mem && n[k - 1] == h[k - 1]; k--)
-            ;
+        for (k = ms + 1; k > mem && n[k - 1] == h[k - 1]; k--);
         if (k <= mem)
             return (char *)h;
         h += p;

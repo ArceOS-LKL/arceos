@@ -37,6 +37,11 @@ char *ctime_r(const time_t *, char *);
 
 void tzset(void);
 
+struct itimerspec {
+    struct timespec it_interval;
+    struct timespec it_value;
+};
+
 int nanosleep(const struct timespec *requested_time, struct timespec *remaining);
 int clock_gettime(clockid_t _clk, struct timespec *ts);
 

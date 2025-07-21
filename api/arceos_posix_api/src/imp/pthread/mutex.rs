@@ -1,6 +1,6 @@
 use crate::{ctypes, utils::check_null_mut_ptr};
 
-use axerrno::LinuxResult;
+use axerrno::{LinuxError, LinuxResult};
 use axsync::Mutex;
 
 use core::ffi::c_int;
@@ -64,6 +64,31 @@ pub fn sys_pthread_mutex_unlock(mutex: *mut ctypes::pthread_mutex_t) -> c_int {
         check_null_mut_ptr(mutex)?;
         unsafe {
             (*mutex.cast::<PthreadMutex>()).unlock()?;
+        }
+        Ok(0)
+    })
+}
+
+/// Destroy the given mutex.
+pub fn sys_pthread_mutex_destroy(mutex: *mut ctypes::pthread_mutex_t) -> c_int {
+    debug!("sys_pthread_mutex_destroy <= {:#x}", mutex as usize);
+    warn!("sys_pthread_mutex_destroy is not implemented");
+    0
+}
+
+/// Set the type of the given mutex attribute.
+pub unsafe fn sys_pthread_mutexattr_settype(
+    attr: *mut ctypes::pthread_mutexattr_t,
+    type_: c_int,
+) -> c_int {
+    debug!("sys_pthread_mutexattr_settype <= {:#x}", attr as usize);
+    syscall_body!(sys_pthread_mutexattr_settype, {
+        if type_ > 2 {
+            return Err(LinuxError::EINVAL);
+        }
+        unsafe {
+            let attr_ref = &mut *attr;
+            attr_ref.__attr = (attr_ref.__attr & !3) | (type_ as u32);
         }
         Ok(0)
     })

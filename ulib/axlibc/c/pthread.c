@@ -40,6 +40,13 @@ int pthread_mutex_trylock(pthread_mutex_t *m)
 }
 
 // TODO
+int pthread_mutexattr_init(pthread_mutexattr_t *a)
+{
+    *a = (pthread_mutexattr_t){0};
+    return 0;
+}
+
+// TODO
 int pthread_setname_np(pthread_t thread, const char *name)
 {
     unimplemented();
@@ -73,6 +80,13 @@ int pthread_cond_wait(pthread_cond_t *__restrict__ __cond, pthread_mutex_t *__re
 
 // TODO
 int pthread_cond_broadcast(pthread_cond_t *c)
+{
+    unimplemented();
+    return 0;
+}
+
+// TODO
+int pthread_cond_destroy(pthread_cond_t *c)
 {
     unimplemented();
     return 0;

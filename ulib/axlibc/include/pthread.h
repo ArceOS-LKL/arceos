@@ -4,6 +4,11 @@
 #include <features.h>
 #include <time.h>
 
+#define PTHREAD_MUTEX_NORMAL     0
+#define PTHREAD_MUTEX_DEFAULT    0
+#define PTHREAD_MUTEX_RECURSIVE  1
+#define PTHREAD_MUTEX_ERRORCHECK 2
+
 #define PTHREAD_CANCEL_ENABLE  0
 #define PTHREAD_CANCEL_DISABLE 1
 #define PTHREAD_CANCEL_MASKED  2
@@ -51,9 +56,11 @@ typedef void *pthread_t;
 
 _Noreturn void pthread_exit(void *);
 pthread_t pthread_self(void);
+int pthread_equal(pthread_t, pthread_t);
 
 int pthread_create(pthread_t *__restrict, const pthread_attr_t *__restrict, void *(*)(void *),
                    void *__restrict);
+int pthread_detach(pthread_t);
 int pthread_join(pthread_t t, void **res);
 
 int pthread_setcancelstate(int, int *);
@@ -65,6 +72,10 @@ int pthread_mutex_init(pthread_mutex_t *__restrict, const pthread_mutexattr_t *_
 int pthread_mutex_lock(pthread_mutex_t *);
 int pthread_mutex_unlock(pthread_mutex_t *);
 int pthread_mutex_trylock(pthread_mutex_t *);
+int pthread_mutex_destroy(pthread_mutex_t *);
+
+int pthread_mutexattr_init(pthread_mutexattr_t *);
+int pthread_mutexattr_settype(pthread_mutexattr_t *, int);
 
 int pthread_setname_np(pthread_t, const char *);
 
@@ -73,11 +84,13 @@ int pthread_cond_init(pthread_cond_t *__restrict__ __cond,
 int pthread_cond_signal(pthread_cond_t *__cond);
 int pthread_cond_wait(pthread_cond_t *__restrict__ __cond, pthread_mutex_t *__restrict__ __mutex);
 int pthread_cond_broadcast(pthread_cond_t *);
-
+int pthread_cond_destroy(pthread_cond_t *);
 int pthread_attr_init(pthread_attr_t *__attr);
 int pthread_attr_getstacksize(const pthread_attr_t *__restrict__ __attr,
                               size_t *__restrict__ __stacksize);
 int pthread_attr_setstacksize(pthread_attr_t *__attr, size_t __stacksize);
+
+int pthread_getattr_np(pthread_t, pthread_attr_t *);
 
 #endif // AX_CONFIG_MULTITASK
 

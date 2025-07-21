@@ -20,6 +20,7 @@
 #define ULLONG_MAX (2ULL * LLONG_MAX + 1)
 #define IOV_MAX    1024
 
+#define PTHREAD_KEYS_MAX  128
 #define PTHREAD_STACK_MIN 2048
 
 #define LOGIN_NAME_MAX 256

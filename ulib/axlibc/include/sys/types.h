@@ -4,6 +4,7 @@
 #include <stddef.h>
 
 typedef unsigned char u_char;
+typedef unsigned short u_short, ushort;
 
 typedef unsigned mode_t;
 typedef uint32_t nlink_t;
@@ -12,6 +13,8 @@ typedef uint64_t ino_t;
 typedef uint64_t dev_t;
 typedef long blksize_t;
 typedef int64_t blkcnt_t;
+
+typedef void *timer_t;
 
 typedef int pid_t;
 typedef unsigned uid_t;

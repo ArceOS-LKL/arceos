@@ -30,7 +30,9 @@
 #else
 #define MAP_ANONYMOUS 0x20 /* Don't use a file.  */
 #endif
-#define MAP_ANON MAP_ANONYMOUS
+#define MAP_ANON      MAP_ANONYMOUS
+#define MAP_NORESERVE 0x4000
+
 /* When MAP_HUGETLB is set bits [26:31] encode the log2 of the huge page size.  */
 #define MAP_HUGE_SHIFT 26
 #define MAP_HUGE_MASK  0x3f

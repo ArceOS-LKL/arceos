@@ -6,10 +6,10 @@
 
 #define RAND_MAX (0x7fffffff)
 
-#define WEXITSTATUS(s) (((s)&0xff00) >> 8)
-#define WTERMSIG(s)    ((s)&0x7f)
+#define WEXITSTATUS(s) (((s) & 0xff00) >> 8)
+#define WTERMSIG(s)    ((s) & 0x7f)
 #define WIFEXITED(s)   (!WTERMSIG(s))
-#define WIFSIGNALED(s) (((s)&0xffff) - 1U < 0xffu)
+#define WIFSIGNALED(s) (((s) & 0xffff) - 1U < 0xffu)
 
 #define EXIT_FAILURE 1
 #define EXIT_SUCCESS 0
@@ -55,6 +55,7 @@ int mkstemp(char *);
 int mkostemp(char *, int);
 int setenv(const char *, const char *, int);
 int unsetenv(const char *);
+void __stack_chk_fail(void);
 int system(const char *);
 
 #endif //__STDLIB_H__

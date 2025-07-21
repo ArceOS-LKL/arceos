@@ -160,6 +160,29 @@ struct sigaction {
     void (*sa_restorer)(void);
 };
 
+struct sigevent {
+    union sigval sigev_value;
+    int sigev_signo;
+    int sigev_notify;
+    union {
+        char __pad[64 - 2 * sizeof(int) - sizeof(union sigval)];
+        pid_t sigev_notify_thread_id;
+        struct {
+            void (*sigev_notify_function)(union sigval);
+            pthread_attr_t *sigev_notify_attributes;
+        } __sev_thread;
+    } __sev_fields;
+};
+
+#define sigev_notify_thread_id  __sev_fields.sigev_notify_thread_id
+#define sigev_notify_function   __sev_fields.__sev_thread.sigev_notify_function
+#define sigev_notify_attributes __sev_fields.__sev_thread.sigev_notify_attributes
+
+#define SIGEV_SIGNAL    0
+#define SIGEV_NONE      1
+#define SIGEV_THREAD    2
+#define SIGEV_THREAD_ID 4
+
 #define sa_handler   __sa_handler.sa_handler
 #define sa_sigaction __sa_handler.sa_sigaction
 

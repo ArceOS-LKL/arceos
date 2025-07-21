@@ -23,9 +23,15 @@ SECTIONS
         *(.sdata2 .sdata2.*)
     }
 
-    .init_array : ALIGN(0x10) {
+    .notes : ALIGN(0x10) {
+        __start_notes = .;
+        *(.note.*)
+        __stop_notes = .;
+    }
+
+    .init_array : ALIGN(4K) {
         __init_array_start = .;
-        *(.init_array .init_array.*)
+        KEEP(*(.init_array .init_array.*))
         __init_array_end = .;
     }
 
@@ -54,21 +60,29 @@ SECTIONS
         _etbss = .;
     }
 
+    linkme_IRQ : { *(linkme_IRQ) }
+    linkm2_IRQ : { *(linkm2_IRQ) }
+    linkme_PAGE_FAULT : { *(linkme_PAGE_FAULT) }
+    linkm2_PAGE_FAULT : { *(linkm2_PAGE_FAULT) }
+    linkme_SYSCALL : { *(linkme_SYSCALL) }
+    linkm2_SYSCALL : { *(linkm2_SYSCALL) }
+    axns_resource : { *(axns_resource) }
+
     . = ALIGN(4K);
     _percpu_start = .;
-    _percpu_end = _percpu_start + SIZEOF(.percpu);
     .percpu 0x0 : AT(_percpu_start) {
         _percpu_load_start = .;
         *(.percpu .percpu.*)
         _percpu_load_end = .;
         . = _percpu_load_start + ALIGN(64) * %CPU_NUM%;
+        _percpu_end = _percpu_start + ALIGN(64) * %CPU_NUM%;
     }
     . = _percpu_end;
 
     . = ALIGN(4K);
     _edata = .;
 
-    .bss : AT(.) ALIGN(4K) {
+    .bss : AT(_edata) ALIGN(4K) {
         boot_stack = .;
         *(.bss.stack)
         . = ALIGN(4K);
@@ -85,17 +99,6 @@ SECTIONS
     _ekernel = .;
 
 	/DISCARD/ : {
-        *(.comment) *(.gnu*) *(.note*) *(.eh_frame*)
+        *(.comment) *(.gnu*) *(.note.GNU-stack) *(.note.gnu.property) *(.eh_frame*)
     }
 }
-
-SECTIONS {
-    linkme_IRQ : { *(linkme_IRQ) }
-    linkm2_IRQ : { *(linkm2_IRQ) }
-    linkme_PAGE_FAULT : { *(linkme_PAGE_FAULT) }
-    linkm2_PAGE_FAULT : { *(linkm2_PAGE_FAULT) }
-    linkme_SYSCALL : { *(linkme_SYSCALL) }
-    linkm2_SYSCALL : { *(linkm2_SYSCALL) }
-    axns_resource : { *(axns_resource) }
-}
-INSERT AFTER .tbss;

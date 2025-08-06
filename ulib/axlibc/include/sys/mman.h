@@ -51,4 +51,7 @@ void *mremap(void *old_address, size_t old_size, size_t new_size, int flags,
 int mprotect(void *addr, size_t len, int prot);
 int madvise(void *addr, size_t length, int advice);
 
+void *page_alloc(size_t size);
+void page_free(void *addr, size_t size);
+
 #endif

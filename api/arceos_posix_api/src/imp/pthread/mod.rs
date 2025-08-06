@@ -1,4 +1,4 @@
-use alloc::{boxed::Box, collections::BTreeMap, sync::Arc};
+use alloc::{collections::BTreeMap, sync::Arc};
 use core::cell::UnsafeCell;
 use core::ffi::{c_int, c_void};
 
@@ -9,9 +9,9 @@ use spin::RwLock;
 use crate::ctypes;
 
 pub mod mutex;
-
+pub mod sem;
 lazy_static::lazy_static! {
-    static ref TID_TO_PTHREAD: RwLock<BTreeMap<u64, ForceSendSync<ctypes::pthread_t>>> = {
+    static ref TID_TO_PTHREAD: RwLock<BTreeMap<u64, Arc<Pthread>>> = {
         let mut map = BTreeMap::new();
         let main_task = axtask::current();
         let main_tid = main_task.id().as_u64();
@@ -21,8 +21,7 @@ lazy_static::lazy_static! {
                 result: UnsafeCell::new(core::ptr::null_mut()),
             }),
         };
-        let ptr = Box::into_raw(Box::new(main_thread)) as *mut c_void;
-        map.insert(main_tid, ForceSendSync(ptr));
+        map.insert(main_tid, Arc::new(main_thread));
         RwLock::new(map)
     };
 }
@@ -65,21 +64,16 @@ impl Pthread {
             inner: task_inner,
             retval: my_packet,
         };
-        let ptr = Box::into_raw(Box::new(thread)) as *mut c_void;
-        TID_TO_PTHREAD.write().insert(tid, ForceSendSync(ptr));
-        Ok(ptr)
+        TID_TO_PTHREAD.write().insert(tid, Arc::new(thread));
+        Ok(tid as _)
     }
 
-    fn current_ptr() -> *mut Pthread {
+    fn current() -> Option<Arc<Pthread>> {
         let tid = axtask::current().id().as_u64();
         match TID_TO_PTHREAD.read().get(&tid) {
-            None => core::ptr::null_mut(),
-            Some(ptr) => ptr.0 as *mut Pthread,
+            None => None,
+            Some(ptr) => Some(Arc::clone(ptr)),
         }
-    }
-
-    fn current() -> Option<&'static Pthread> {
-        unsafe { core::ptr::NonNull::new(Self::current_ptr()).map(|ptr| ptr.as_ref()) }
     }
 
     fn exit_current(retval: *mut c_void) -> ! {
@@ -88,12 +82,15 @@ impl Pthread {
         axtask::exit(0);
     }
 
-    fn join(ptr: ctypes::pthread_t) -> LinuxResult<*mut c_void> {
-        if core::ptr::eq(ptr, Self::current_ptr() as _) {
+    fn join(tid: ctypes::pthread_t) -> LinuxResult<*mut c_void> {
+        if core::ptr::eq(tid, axtask::current().id().as_u64() as _) {
             return Err(LinuxError::EDEADLK);
         }
 
-        let thread = unsafe { Box::from_raw(ptr as *mut Pthread) };
+        let thread = match Self::pthread_ref(tid as u64) {
+            None => return Err(LinuxError::ESRCH),
+            Some(ptr) => ptr,
+        };
         thread.inner.join();
         let tid = thread.inner.id().as_u64();
         let retval = unsafe { *thread.retval.result.get() };
@@ -101,27 +98,32 @@ impl Pthread {
         drop(thread);
         Ok(retval)
     }
+
+    fn pthread_ref(tid: u64) -> Option<Arc<Pthread>> {
+        match TID_TO_PTHREAD.read().get(&tid) {
+            None => None,
+            Some(ptr) => Some(Arc::clone(ptr)),
+        }
+    }
 }
 
 /// Returns the `pthread` struct of current thread.
 pub fn sys_pthread_self() -> ctypes::pthread_t {
-    Pthread::current().expect("fail to get current thread") as *const Pthread as _
+    Pthread::current()
+        .expect("fail to get current thread")
+        .inner
+        .id()
+        .as_u64() as _
 }
 
 /// Check if two threads are equal.
 pub unsafe fn sys_pthread_equal(a: ctypes::pthread_t, b: ctypes::pthread_t) -> c_int {
-    let thread_a = unsafe { Box::from_raw(a as *mut Pthread) };
-    let thread_b = unsafe { Box::from_raw(b as *mut Pthread) };
-    let ret = thread_a.inner.id() == thread_b.inner.id();
-    drop(thread_a);
-    drop(thread_b);
-    ret as _
+    if a == b { 1 } else { 0 }
 }
 
 /// Create a new thread with the given entry point and argument.
 ///
-/// If successful, it stores the pointer to the newly created `struct __pthread`
-/// in `res` and returns 0.
+/// If successful, it stores the tid of the new thread in `res` and returns 0.
 pub unsafe fn sys_pthread_create(
     res: *mut ctypes::pthread_t,
     attr: *const ctypes::pthread_attr_t,
@@ -133,8 +135,9 @@ pub unsafe fn sys_pthread_create(
         start_routine as usize, arg as usize
     );
     syscall_body!(sys_pthread_create, {
-        let ptr = Pthread::create(attr, start_routine, arg)?;
-        unsafe { core::ptr::write(res, ptr) };
+        let tid = Pthread::create(attr, start_routine, arg)?;
+        unsafe { core::ptr::write(res, tid) };
+        crate::sys_sched_yield();
         Ok(0)
     })
 }

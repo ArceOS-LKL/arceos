@@ -6,6 +6,9 @@ pub mod sys;
 pub mod task;
 pub mod time;
 
+#[cfg(feature = "alloc")]
+pub mod malloc;
+
 #[cfg(feature = "fd")]
 pub mod fd_ops;
 #[cfg(feature = "fs")]

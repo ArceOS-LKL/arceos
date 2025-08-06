@@ -39,6 +39,7 @@ typedef struct {{
             "stat",
             "size_t",
             "ssize_t",
+            "sem_t",
             "off_t",
             "mode_t",
             "sock.*",

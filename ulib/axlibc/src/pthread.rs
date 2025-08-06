@@ -1,6 +1,6 @@
 use crate::{ctypes, utils::e};
 use arceos_posix_api as api;
-use core::ffi::{c_int, c_void};
+use core::ffi::{c_char, c_int, c_void};
 
 /// Returns the `pthread` struct of current thread.
 #[unsafe(no_mangle)]
@@ -87,4 +87,32 @@ pub unsafe extern "C" fn pthread_mutexattr_settype(
     type_: c_int,
 ) -> c_int {
     e(api::sys_pthread_mutexattr_settype(attr, type_))
+}
+
+/// Allocate a semaphore and initialize it with the given value.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn sem_open(
+    _name: *const c_char,
+    _oflag: c_int,
+    _mode: c_int,
+    value: c_int,
+) -> *mut ctypes::sem_t {
+    api::sys_sem_alloc(value) as *mut ctypes::sem_t
+}
+/// Destroy a semaphore.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn sem_destroy(sem: *mut ctypes::sem_t) -> c_int {
+    e(api::sys_sem_destroy(sem))
+}
+
+/// Up a semaphore.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn sem_post(sem: *mut ctypes::sem_t) -> c_int {
+    e(api::sys_sem_post(sem))
+}
+
+/// Down a semaphore.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn sem_wait(sem: *mut ctypes::sem_t) -> c_int {
+    e(api::sys_sem_wait(sem))
 }

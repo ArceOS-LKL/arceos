@@ -44,6 +44,8 @@ pub use imp::fs::{sys_fstat, sys_getcwd, sys_lseek, sys_lstat, sys_open, sys_ren
 pub use imp::io_mpx::sys_select;
 #[cfg(feature = "epoll")]
 pub use imp::io_mpx::{sys_epoll_create, sys_epoll_ctl, sys_epoll_wait};
+#[cfg(feature = "alloc")]
+pub use imp::malloc::{sys_free, sys_malloc, sys_page_alloc, sys_page_free};
 #[cfg(feature = "net")]
 pub use imp::net::{
     sys_accept, sys_bind, sys_connect, sys_freeaddrinfo, sys_getaddrinfo, sys_getpeername,
@@ -57,6 +59,8 @@ pub use imp::pthread::mutex::{
     sys_pthread_mutex_destroy, sys_pthread_mutex_init, sys_pthread_mutex_lock,
     sys_pthread_mutex_unlock, sys_pthread_mutexattr_settype,
 };
+#[cfg(feature = "multitask")]
+pub use imp::pthread::sem::{sys_sem_alloc, sys_sem_destroy, sys_sem_post, sys_sem_wait};
 #[cfg(feature = "multitask")]
 pub use imp::pthread::{
     sys_pthread_create, sys_pthread_detach, sys_pthread_equal, sys_pthread_exit, sys_pthread_join,

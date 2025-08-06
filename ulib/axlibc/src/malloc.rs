@@ -6,33 +6,18 @@
 //! order to maintain consistency, C user programs also choose to share the kernel heap,
 //! skipping the sys_brk step.
 
-use alloc::alloc::{alloc, dealloc};
-use core::alloc::Layout;
-use core::ffi::c_void;
-
 use crate::ctypes;
+use arceos_posix_api as api;
 
-struct MemoryControlBlock {
-    size: usize,
-}
-
-const CTRL_BLK_SIZE: usize = core::mem::size_of::<MemoryControlBlock>();
+use core::ffi::c_void;
+use core::ptr::NonNull;
 
 /// Allocate memory and return the memory address.
 ///
 /// Returns 0 on failure (the current implementation does not trigger an exception)
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn malloc(size: ctypes::size_t) -> *mut c_void {
-    // Allocate `(actual length) + 8`. The lowest 8 Bytes are stored in the actual allocated space size.
-    // This is because free(uintptr_t) has only one parameter representing the address,
-    // So we need to save in advance to know the size of the memory space that needs to be released
-    let layout = Layout::from_size_align(size + CTRL_BLK_SIZE, 8).unwrap();
-    unsafe {
-        let ptr = alloc(layout).cast::<MemoryControlBlock>();
-        assert!(!ptr.is_null(), "malloc failed");
-        ptr.write(MemoryControlBlock { size });
-        ptr.add(1).cast()
-    }
+    api::sys_malloc(size).as_ptr() as *mut c_void
 }
 
 /// Deallocate memory.
@@ -45,12 +30,17 @@ pub unsafe extern "C" fn free(ptr: *mut c_void) {
     if ptr.is_null() {
         return;
     }
-    let ptr = ptr.cast::<MemoryControlBlock>();
-    assert!(ptr as usize > CTRL_BLK_SIZE, "free a null pointer");
-    unsafe {
-        let ptr = ptr.sub(1);
-        let size = ptr.read().size;
-        let layout = Layout::from_size_align(size + CTRL_BLK_SIZE, 8).unwrap();
-        dealloc(ptr.cast(), layout)
-    }
+    api::sys_free(NonNull::new(ptr as *mut u8).unwrap());
+}
+
+/// Allocate pages
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn page_alloc(size: ctypes::size_t) -> *mut c_void {
+    api::sys_page_alloc(size).as_ptr() as *mut c_void
+}
+
+/// Free pages
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn page_free(ptr: *mut c_void, size: ctypes::size_t) {
+    api::sys_page_free(NonNull::new(ptr as *mut u8).unwrap(), size);
 }

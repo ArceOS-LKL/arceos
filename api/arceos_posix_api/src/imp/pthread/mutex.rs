@@ -57,6 +57,13 @@ pub fn sys_pthread_mutex_lock(mutex: *mut ctypes::pthread_mutex_t) -> c_int {
     })
 }
 
+/// Destroy the given mutex.
+pub fn sys_pthread_mutex_destroy(mutex: *mut ctypes::pthread_mutex_t) -> c_int {
+    debug!("sys_pthread_mutex_destroy <= {:#x}", mutex as usize);
+    warn!("sys_pthread_mutex_destroy is not implemented");
+    0
+}
+
 /// Unlock the given mutex.
 pub fn sys_pthread_mutex_unlock(mutex: *mut ctypes::pthread_mutex_t) -> c_int {
     debug!("sys_pthread_mutex_unlock <= {:#x}", mutex as usize);
@@ -67,13 +74,6 @@ pub fn sys_pthread_mutex_unlock(mutex: *mut ctypes::pthread_mutex_t) -> c_int {
         }
         Ok(0)
     })
-}
-
-/// Destroy the given mutex.
-pub fn sys_pthread_mutex_destroy(mutex: *mut ctypes::pthread_mutex_t) -> c_int {
-    debug!("sys_pthread_mutex_destroy <= {:#x}", mutex as usize);
-    warn!("sys_pthread_mutex_destroy is not implemented");
-    0
 }
 
 /// Set the type of the given mutex attribute.

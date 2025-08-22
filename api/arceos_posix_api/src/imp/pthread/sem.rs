@@ -30,7 +30,10 @@ impl Semaphore {
 
     fn down(&self) {
         loop {
-            self.wq.wait_until(|| *(self.count.lock()) > 0);
+            // self.wq.wait_until(|| *(self.count.lock()) > 0);
+            while *(self.count.lock()) <= 0 {
+                axtask::yield_now();
+            }
             let mut count = self.count.lock();
             if *count > 0 {
                 *count -= 1;

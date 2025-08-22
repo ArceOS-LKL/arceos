@@ -5,12 +5,12 @@ fn main() {
         // TODO: generate size and initial content automatically.
         let (mutex_size, mutex_init) = if cfg!(feature = "multitask") {
             if cfg!(feature = "smp") {
-                (6, "{0, 0, 8, 0, 0, 0}") // core::mem::transmute::<_, [usize; 6]>(axsync::Mutex::new(()))
+                (7, "{0, 0, 8, 0, 0, 0}") // core::mem::transmute::<_, [usize; 6]>(axsync::Mutex::new(()))
             } else {
-                (5, "{0, 8, 0, 0, 0}") // core::mem::transmute::<_, [usize; 5]>(axsync::Mutex::new(()))
+                (6, "{0, 8, 0, 0, 0}") // core::mem::transmute::<_, [usize; 5]>(axsync::Mutex::new(()))
             }
         } else {
-            (1, "{0}")
+            (2, "{0}")
         };
 
         let mut output = Vec::new();
@@ -41,7 +41,9 @@ typedef struct {{
             "ssize_t",
             "sem_t",
             "off_t",
+            "timer_t",
             "mode_t",
+            "clock_t",
             "sock.*",
             "fd_set",
             "timeval",
@@ -50,6 +52,8 @@ typedef struct {{
             "pthread_mutex_t",
             "pthread_mutexattr_t",
             "epoll_event",
+            "sigevent",
+            "itimerspec",
             "iovec",
             "clockid_t",
             "rlimit",

@@ -35,6 +35,13 @@ impl From<Duration> for ctypes::timeval {
     }
 }
 
+/// Get the clock tick
+pub unsafe fn sys_clock() -> ctypes::clock_t {
+    syscall_body!(sys_clock, {
+        Ok(axhal::time::monotonic_time_nanos() as ctypes::clock_t)
+    })
+}
+
 /// Get clock time since booting
 pub unsafe fn sys_clock_gettime(clk: ctypes::clockid_t, ts: *mut ctypes::timespec) -> c_int {
     syscall_body!(sys_clock_gettime, {

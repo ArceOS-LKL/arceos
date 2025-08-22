@@ -111,6 +111,8 @@ pub use self::net::{
 pub use self::pthread::{pthread_exit, pthread_self};
 #[cfg(feature = "multitask")]
 pub use self::pthread::{pthread_mutex_init, pthread_mutex_lock, pthread_mutex_unlock};
+#[cfg(all(feature = "multitask", feature = "irq"))]
+pub use self::time::{timer_create, timer_delete, timer_settime};
 
 #[cfg(feature = "pipe")]
 pub use self::pipe::pipe;

@@ -188,13 +188,6 @@ char *ctime_r(const time_t *t, char *buf)
     return NULL;
 }
 
-// TODO
-clock_t clock(void)
-{
-    unimplemented();
-    return 0;
-}
-
 #ifdef AX_CONFIG_FP_SIMD
 double difftime(time_t t1, time_t t0)
 {

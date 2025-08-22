@@ -13,4 +13,5 @@
 #include <sys/types.h>
 #include <sys/uio.h>
 #include <time.h>
+#include <timer.h>
 #include <unistd.h>

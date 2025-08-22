@@ -21,3 +21,6 @@ pub mod net;
 pub mod pipe;
 #[cfg(feature = "multitask")]
 pub mod pthread;
+
+#[cfg(all(feature = "multitask", feature = "irq"))]
+pub mod timer;

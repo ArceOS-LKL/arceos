@@ -30,16 +30,18 @@ pub mod config {
 #[allow(dead_code, non_snake_case, non_camel_case_types, non_upper_case_globals, clippy::upper_case_acronyms, missing_docs)]
 pub mod ctypes;
 
-pub use imp::io::{sys_read, sys_write, sys_writev};
+pub use imp::io::{sys_read, sys_readv, sys_write, sys_writev};
 pub use imp::resources::{sys_getrlimit, sys_setrlimit};
 pub use imp::sys::sys_sysconf;
 pub use imp::task::{sys_exit, sys_getpid, sys_sched_yield};
-pub use imp::time::{sys_clock_gettime, sys_nanosleep};
+pub use imp::time::{sys_clock, sys_clock_gettime, sys_nanosleep};
 
 #[cfg(feature = "fd")]
 pub use imp::fd_ops::{sys_close, sys_dup, sys_dup2, sys_fcntl};
 #[cfg(feature = "fs")]
 pub use imp::fs::{sys_fstat, sys_getcwd, sys_lseek, sys_lstat, sys_open, sys_rename, sys_stat};
+#[cfg(feature = "fs")]
+pub use imp::io::{sys_pread, sys_preadv, sys_pwrite, sys_pwritev};
 #[cfg(feature = "select")]
 pub use imp::io_mpx::sys_select;
 #[cfg(feature = "epoll")]
@@ -66,3 +68,6 @@ pub use imp::pthread::{
     sys_pthread_create, sys_pthread_detach, sys_pthread_equal, sys_pthread_exit, sys_pthread_join,
     sys_pthread_self,
 };
+
+#[cfg(all(feature = "multitask", feature = "irq"))]
+pub use imp::timer::{sys_timer_create, sys_timer_delete, sys_timer_settime};

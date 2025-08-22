@@ -12,34 +12,53 @@ static_assertions::const_assert_eq!(
 );
 
 #[repr(C)]
-pub struct PthreadMutex(Mutex<()>);
+pub struct PthreadMutex {
+    mutex: Mutex<()>,
+    recursive: bool,
+}
 
 impl PthreadMutex {
-    const fn new() -> Self {
-        Self(Mutex::new(()))
+    const fn new(recursive: bool) -> Self {
+        Self {
+            mutex: Mutex::new(()),
+            recursive,
+        }
     }
 
     fn lock(&self) -> LinuxResult {
-        let _guard = ManuallyDrop::new(self.0.lock());
-        Ok(())
+        if self.recursive && self.mutex.is_locked() {
+            Ok(())
+        } else {
+            let _guard = ManuallyDrop::new(self.mutex.lock());
+            Ok(())
+        }
     }
 
     fn unlock(&self) -> LinuxResult {
-        unsafe { self.0.force_unlock() };
+        if !self.recursive && self.mutex.is_locked() {
+            unsafe { self.mutex.force_unlock() };
+        }
         Ok(())
     }
 }
 
 /// Initialize a mutex.
-pub fn sys_pthread_mutex_init(
+pub unsafe fn sys_pthread_mutex_init(
     mutex: *mut ctypes::pthread_mutex_t,
-    _attr: *const ctypes::pthread_mutexattr_t,
+    attr: *const ctypes::pthread_mutexattr_t,
 ) -> c_int {
     debug!("sys_pthread_mutex_init <= {:#x}", mutex as usize);
     syscall_body!(sys_pthread_mutex_init, {
         check_null_mut_ptr(mutex)?;
+        let mut recursive = false;
+        if !attr.is_null() {
+            let attr_ref = unsafe { &*attr };
+            recursive = attr_ref.__attr & 1 == 1;
+        }
         unsafe {
-            mutex.cast::<PthreadMutex>().write(PthreadMutex::new());
+            mutex
+                .cast::<PthreadMutex>()
+                .write(PthreadMutex::new(recursive));
         }
         Ok(0)
     })

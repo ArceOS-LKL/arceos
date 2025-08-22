@@ -11,7 +11,7 @@ use crate::ctypes;
 pub mod mutex;
 pub mod sem;
 lazy_static::lazy_static! {
-    static ref TID_TO_PTHREAD: RwLock<BTreeMap<u64, Arc<Pthread>>> = {
+    pub(crate) static ref TID_TO_PTHREAD: RwLock<BTreeMap<u64, Arc<Pthread>>> = {
         let mut map = BTreeMap::new();
         let main_task = axtask::current();
         let main_tid = main_task.id().as_u64();
@@ -39,6 +39,16 @@ pub struct Pthread {
 }
 
 impl Pthread {
+    #[allow(dead_code)]
+    pub(crate) fn from_axtask(task: AxTaskRef) -> Self {
+        Self {
+            inner: task,
+            retval: Arc::new(Packet {
+                result: UnsafeCell::new(core::ptr::null_mut()),
+            }),
+        }
+    }
+
     fn create(
         _attr: *const ctypes::pthread_attr_t,
         start_routine: extern "C" fn(arg: *mut c_void) -> *mut c_void,
@@ -82,7 +92,7 @@ impl Pthread {
         axtask::exit(0);
     }
 
-    fn join(tid: ctypes::pthread_t) -> LinuxResult<*mut c_void> {
+    pub(crate) fn join(tid: ctypes::pthread_t) -> LinuxResult<*mut c_void> {
         if core::ptr::eq(tid, axtask::current().id().as_u64() as _) {
             return Err(LinuxError::EDEADLK);
         }
